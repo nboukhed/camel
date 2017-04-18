@@ -121,6 +121,7 @@
     <module>camel-example-widget-gadget-java</module>
     <module>camel-example-widget-gadget-xml</module>
     <module>camel-example-zipkin</module>
+    <module>soap-to-rest</module>
   </modules>
 
   <properties>
