@@ -58,15 +58,15 @@
   <!-- web service for the 3 banks -->
   <jaxws:endpoint id="bankService1"
                   implementor="#bank1"
-                  address="http://localhost:8088/bank1"/>
+                  address="http://127.0.0.1:8088/bank1"/>
 
   <jaxws:endpoint id="bankService2"
                   implementor="#bank2"
-                  address="http://localhost:8089/bank2"/>
+                  address="http://127.0.0.1:8089/bank2"/>
 
   <jaxws:endpoint id="bankService3"
                   implementor="#bank3"
-                  address="http://localhost:8090/bank3"/>
+                  address="http://127.0.0.1:8090/bank3"/>
   
   
   <!-- loan broker web service -->
@@ -78,9 +78,9 @@
   <camel:camelContext id="webService">
 
     <!-- define endpoints for the banks -->
-    <camel:endpoint id="bank1WS" uri="cxf://http://localhost:${bank1.port}/bank1?serviceClass=org.apache.camel.loanbroker.webservice.version.bank.BankWS"/>
-    <camel:endpoint id="bank2WS" uri="cxf://http://localhost:${bank2.port}/bank2?serviceClass=org.apache.camel.loanbroker.webservice.version.bank.BankWS"/>
-    <camel:endpoint id="bank3WS" uri="cxf://http://localhost:${bank3.port}/bank3?serviceClass=org.apache.camel.loanbroker.webservice.version.bank.BankWS"/>
+    <camel:endpoint id="bank1WS" uri="cxf://http://127.0.0.1:${bank1.port}/bank1?serviceClass=org.apache.camel.loanbroker.webservice.version.bank.BankWS"/>
+    <camel:endpoint id="bank2WS" uri="cxf://http://127.0.0.1:${bank2.port}/bank2?serviceClass=org.apache.camel.loanbroker.webservice.version.bank.BankWS"/>
+    <camel:endpoint id="bank3WS" uri="cxf://http://127.0.0.1:${bank3.port}/bank3?serviceClass=org.apache.camel.loanbroker.webservice.version.bank.BankWS"/>
 
     <camel:route id="loanBrokerRoute">
       <camel:from uri="cxf:bean:loanBroker"/>
