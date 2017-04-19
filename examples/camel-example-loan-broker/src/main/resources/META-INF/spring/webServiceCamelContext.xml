@@ -58,15 +58,15 @@
   <!-- web service for the 3 banks -->
   <jaxws:endpoint id="bankService1"
                   implementor="#bank1"
-                  address="http://127.0.0.1:8088/bank1"/>
+                  address="http://0.0.0.0:8088/bank1"/>
 
   <jaxws:endpoint id="bankService2"
                   implementor="#bank2"
-                  address="http://127.0.0.1:8089/bank2"/>
+                  address="http://0.0.0.0:8089/bank2"/>
 
   <jaxws:endpoint id="bankService3"
                   implementor="#bank3"
-                  address="http://127.0.0.1:8090/bank3"/>
+                  address="http://0.0.0.0:8090/bank3"/>
   
   
   <!-- loan broker web service -->
