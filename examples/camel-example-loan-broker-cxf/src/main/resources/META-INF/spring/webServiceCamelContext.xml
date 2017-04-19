@@ -15,97 +15,67 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 -->
-
 <beans xmlns="http://www.springframework.org/schema/beans"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xmlns:camel="http://camel.apache.org/schema/spring"
-       xmlns:cxf="http://camel.apache.org/schema/cxf"
-       xmlns:jaxws="http://cxf.apache.org/jaxws"
-       xmlns:context="http://www.springframework.org/schema/context"
-       xsi:schemaLocation="
-         http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-         http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
-         http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd
-         http://camel.apache.org/schema/cxf http://camel.apache.org/schema/cxf/camel-cxf.xsd
-         http://cxf.apache.org/jaxws http://cxf.apache.org/schemas/jaxws.xsd">
-
-  <!-- spring property placeholder, ignore resource not found as the file resource is for unit testing -->
-  <context:property-placeholder location="classpath:loanbroker.properties,file:target/custom.properties"
-                                ignore-resource-not-found="true"/>
-
-  <!-- web service for credit agency -->
-  <jaxws:endpoint id="creditAgent"
-                  implementor="org.apache.camel.loanbroker.credit.CreditAgency"
-                  address="http://localhost:${credit_agency.port}/creditAgency"/>
-
-  <bean id="bank1" class="org.apache.camel.loanbroker.bank.Bank">
-    <constructor-arg index="0">
-      <value>bank1</value>
-    </constructor-arg>
-  </bean>
-
-  <bean id="bank2" class="org.apache.camel.loanbroker.bank.Bank">
-    <constructor-arg index="0">
-      <value>bank2</value>
-    </constructor-arg>
-  </bean>
-
-  <bean id="bank3" class="org.apache.camel.loanbroker.bank.Bank">
-    <constructor-arg index="0">
-      <value>bank3</value>
-    </constructor-arg>
-  </bean>
-
-  <!-- web service for the 3 banks -->
-  <jaxws:endpoint id="bankService1"
-                  implementor="#bank1"
-                  address="http://localhost:8088/bank1"/>
-
-  <jaxws:endpoint id="bankService2"
-                  implementor="#bank2"
-                  address="http://localhost:8089/bank2"/>
-
-  <jaxws:endpoint id="bankService3"
-                  implementor="#bank3"
-                  address="http://localhost:8090/bank3"/>
-
-
-  <!-- loan broker web service -->
-  <cxf:cxfEndpoint id="loanBroker"
-                   address="http://localhost:${loan_broker.port}/loanBroker"
-                   serviceClass="org.apache.camel.loanbroker.LoanBrokerWS"/>
-
-  <!-- Camel -->
-  <camel:camelContext id="webService">
-
-    <!-- define endpoints for the banks -->
-    <camel:endpoint id="bank1WS"
-                    uri="cxf://http://localhost:8088/bank1?serviceClass=org.apache.camel.loanbroker.bank.BankWS"/>
-    <camel:endpoint id="bank2WS"
-                    uri="cxf://http://localhost:8089/bank2?serviceClass=org.apache.camel.loanbroker.bank.BankWS"/>
-    <camel:endpoint id="bank3WS"
-                    uri="cxf://http://localhost:8090/bank3?serviceClass=org.apache.camel.loanbroker.bank.BankWS"/>
-
-    <camel:route id="loanBrokerRoute">
-      <camel:from uri="cxf:bean:loanBroker"/>
-      <camel:process ref="creditScoreProcessor"/>
-      <camel:multicast parallelProcessing="true" strategyRef="bankResponse">
-        <camel:to ref="bank1WS"/>
-        <camel:to ref="bank2WS"/>
-        <camel:to ref="bank3WS"/>
-      </camel:multicast>
-      <camel:process ref="replyProcessor"/>
-    </camel:route>
-  </camel:camelContext>
-
-  <!-- processor to calculate credit score -->
-  <bean id="creditScoreProcessor" class="org.apache.camel.loanbroker.CreditScoreProcessor">
-    <constructor-arg index="0" value="http://localhost:${credit_agency.port}/creditAgency"/>
-  </bean>
-
-  <bean id="replyProcessor" class="org.apache.camel.loanbroker.ReplyProcessor"/>
-
-  <!-- strategy to assemble the bank responses -->
-  <bean id="bankResponse" class="org.apache.camel.loanbroker.BankResponseAggregationStrategy"/>
-
+    xmlns:camel="http://camel.apache.org/schema/spring"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:cxf="http://camel.apache.org/schema/cxf"
+    xmlns:jaxws="http://cxf.apache.org/jaxws"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="          http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd          http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd          http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd          http://camel.apache.org/schema/cxf http://camel.apache.org/schema/cxf/camel-cxf.xsd          http://cxf.apache.org/jaxws http://cxf.apache.org/schemas/jaxws.xsd">
+    <!-- spring property placeholder, ignore resource not found as the file resource is for unit testing -->
+    <context:property-placeholder ignore-resource-not-found="true" location="classpath:loanbroker.properties,file:target/custom.properties"/>
+    <!-- web service for credit agency -->
+    <jaxws:endpoint
+        address="http://localhost:${credit_agency.port}/creditAgency"
+        id="creditAgent" implementor="org.apache.camel.loanbroker.credit.CreditAgency"/>
+    <bean class="org.apache.camel.loanbroker.bank.Bank" id="bank1">
+        <constructor-arg index="0">
+            <value>bank1</value>
+        </constructor-arg>
+    </bean>
+    <bean class="org.apache.camel.loanbroker.bank.Bank" id="bank2">
+        <constructor-arg index="0">
+            <value>bank2</value>
+        </constructor-arg>
+    </bean>
+    <bean class="org.apache.camel.loanbroker.bank.Bank" id="bank3">
+        <constructor-arg index="0">
+            <value>bank3</value>
+        </constructor-arg>
+    </bean>
+    <!-- web service for the 3 banks -->
+    <jaxws:endpoint address="http://localhost:8088/bank1"
+        id="bankService1" implementor="#bank1"/>
+    <jaxws:endpoint address="http://localhost:8089/bank2"
+        id="bankService2" implementor="#bank2"/>
+    <jaxws:endpoint address="http://localhost:8090/bank3"
+        id="bankService3" implementor="#bank3"/>
+    <!-- loan broker web service -->
+    <cxf:cxfEndpoint
+        address="http://localhost:${loan_broker.port}/loanBroker"
+        id="loanBroker" serviceClass="org.apache.camel.loanbroker.LoanBrokerWS"/>
+    <!-- Camel -->
+    <camel:camelContext id="webService">
+        <!-- define endpoints for the banks -->
+        <camel:endpoint id="bank1WS" uri="cxf://http://localhost:8088/bank1?serviceClass=org.apache.camel.loanbroker.bank.BankWS"/>
+        <camel:endpoint id="bank2WS" uri="cxf://http://localhost:8089/bank2?serviceClass=org.apache.camel.loanbroker.bank.BankWS"/>
+        <camel:endpoint id="bank3WS" uri="cxf://http://localhost:8090/bank3?serviceClass=org.apache.camel.loanbroker.bank.BankWS"/>
+        <camel:route id="loanBrokerRoute">
+            <camel:from id="_from1" uri="cxf:bean:loanBroker"/>
+            <camel:process id="_process1" ref="creditScoreProcessor"/>
+            <camel:multicast id="_multicast1" parallelProcessing="true" strategyRef="bankResponse">
+                <camel:to id="_to1" ref="bank1WS"/>
+                <camel:to id="_to2" ref="bank2WS"/>
+                <camel:to id="_to3" ref="bank3WS"/>
+            </camel:multicast>
+            <camel:process id="_process2" ref="replyProcessor"/>
+        </camel:route>
+    </camel:camelContext>
+    <!-- processor to calculate credit score -->
+    <bean class="org.apache.camel.loanbroker.CreditScoreProcessor" id="creditScoreProcessor">
+        <constructor-arg index="0" value="http://localhost:${credit_agency.port}/creditAgency"/>
+    </bean>
+    <bean class="org.apache.camel.loanbroker.ReplyProcessor" id="replyProcessor"/>
+    <!-- strategy to assemble the bank responses -->
+    <bean
+        class="org.apache.camel.loanbroker.BankResponseAggregationStrategy" id="bankResponse"/>
 </beans>
