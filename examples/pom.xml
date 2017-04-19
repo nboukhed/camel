@@ -122,6 +122,8 @@
     <module>camel-example-widget-gadget-xml</module>
     <module>camel-example-zipkin</module>
     <module>soap-to-rest</module>
+    <module>camel-example-loan-broker</module>
+
   </modules>
 
   <properties>

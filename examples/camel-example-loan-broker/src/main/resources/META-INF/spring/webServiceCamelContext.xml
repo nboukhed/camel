@@ -15,7 +15,6 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 -->
-
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:camel="http://camel.apache.org/schema/spring"
@@ -35,22 +34,22 @@
 
   <!-- web service for credit agency -->
   <jaxws:endpoint id="creditAgent"
-                  implementor="org.apache.camel.loanbroker.credit.CreditAgency"
+                  implementor="org.apache.camel.loanbroker.webservice.version.credit.CreditAgency"
                   address="http://localhost:${credit_agency.port}/creditAgency"/>
 
-  <bean id="bank1" class="org.apache.camel.loanbroker.bank.Bank">
+  <bean id="bank1" class="org.apache.camel.loanbroker.webservice.version.bank.Bank">
     <constructor-arg index="0">
       <value>bank1</value>
     </constructor-arg>
   </bean>
 
-  <bean id="bank2" class="org.apache.camel.loanbroker.bank.Bank">
+  <bean id="bank2" class="org.apache.camel.loanbroker.webservice.version.bank.Bank">
     <constructor-arg index="0">
       <value>bank2</value>
     </constructor-arg>
   </bean>
 
-  <bean id="bank3" class="org.apache.camel.loanbroker.bank.Bank">
+  <bean id="bank3" class="org.apache.camel.loanbroker.webservice.version.bank.Bank">
     <constructor-arg index="0">
       <value>bank3</value>
     </constructor-arg>
@@ -68,44 +67,43 @@
   <jaxws:endpoint id="bankService3"
                   implementor="#bank3"
                   address="http://localhost:8090/bank3"/>
-
-
+  
+  
   <!-- loan broker web service -->
   <cxf:cxfEndpoint id="loanBroker"
                    address="http://localhost:${loan_broker.port}/loanBroker"
-                   serviceClass="org.apache.camel.loanbroker.LoanBrokerWS"/>
+                   serviceClass="org.apache.camel.loanbroker.webservice.version.LoanBrokerWS"/>
 
   <!-- Camel -->
   <camel:camelContext id="webService">
 
     <!-- define endpoints for the banks -->
-    <camel:endpoint id="bank1WS"
-                    uri="cxf://http://localhost:8088/bank1?serviceClass=org.apache.camel.loanbroker.bank.BankWS"/>
-    <camel:endpoint id="bank2WS"
-                    uri="cxf://http://localhost:8089/bank2?serviceClass=org.apache.camel.loanbroker.bank.BankWS"/>
-    <camel:endpoint id="bank3WS"
-                    uri="cxf://http://localhost:8090/bank3?serviceClass=org.apache.camel.loanbroker.bank.BankWS"/>
+    <camel:endpoint id="bank1WS" uri="cxf://http://localhost:${bank1.port}/bank1?serviceClass=org.apache.camel.loanbroker.webservice.version.bank.BankWS"/>
+    <camel:endpoint id="bank2WS" uri="cxf://http://localhost:${bank2.port}/bank2?serviceClass=org.apache.camel.loanbroker.webservice.version.bank.BankWS"/>
+    <camel:endpoint id="bank3WS" uri="cxf://http://localhost:${bank3.port}/bank3?serviceClass=org.apache.camel.loanbroker.webservice.version.bank.BankWS"/>
 
     <camel:route id="loanBrokerRoute">
       <camel:from uri="cxf:bean:loanBroker"/>
       <camel:process ref="creditScoreProcessor"/>
+      <camel:log message="Calling banks with request: ${body}"/>
       <camel:multicast parallelProcessing="true" strategyRef="bankResponse">
         <camel:to ref="bank1WS"/>
         <camel:to ref="bank2WS"/>
         <camel:to ref="bank3WS"/>
       </camel:multicast>
+      <camel:log message="The best rate is : ${body}"/>
       <camel:process ref="replyProcessor"/>
     </camel:route>
   </camel:camelContext>
 
   <!-- processor to calculate credit score -->
-  <bean id="creditScoreProcessor" class="org.apache.camel.loanbroker.CreditScoreProcessor">
+  <bean id="creditScoreProcessor" class="org.apache.camel.loanbroker.webservice.version.CreditScoreProcessor">
     <constructor-arg index="0" value="http://localhost:${credit_agency.port}/creditAgency"/>
   </bean>
-
-  <bean id="replyProcessor" class="org.apache.camel.loanbroker.ReplyProcessor"/>
-
+  
+  <bean id="replyProcessor" class="org.apache.camel.loanbroker.webservice.version.ReplyProcessor"/>
+  
   <!-- strategy to assemble the bank responses -->
-  <bean id="bankResponse" class="org.apache.camel.loanbroker.BankResponseAggregationStrategy"/>
+  <bean id="bankResponse" class="org.apache.camel.loanbroker.webservice.version.BankResponseAggregationStrategy"/>
 
 </beans>
