@@ -110,7 +110,7 @@
             <log id="Bank2_log2" message="After!!"/>
         </route>
         <route id="Bank3Route">
-            <from id="Bank3Route" uri="direct:bank2"/>
+            <from id="Bank3Route" uri="direct:bank3"/>
             <log id="Bank3_log_1" message="In Route quote"/>
             <process id="Bank3_process1" ref="creditScoreProcessor"/>
             <to id="Bank3_to1" uri="cxf:bean:bank3WS"/>
