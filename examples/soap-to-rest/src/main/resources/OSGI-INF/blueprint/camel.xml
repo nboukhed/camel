@@ -19,25 +19,19 @@
     xmlns:camel="http://camel.apache.org/schema/blueprint"
     xmlns:cxf="http://camel.apache.org/schema/blueprint/cxf"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="        http://www.osgi.org/xmlns/blueprint/v1.0.0 http://www.osgi.org/xmlns/blueprint/v1.0.0/blueprint.xsd        http://camel.apache.org/schema/blueprint/cxf http://camel.apache.org/schema/blueprint/cxf/camel-cxf.xsd        http://camel.apache.org/schema/blueprint http://camel.apache.org/schema/blueprint/camel-blueprint.xsd">
-    <cxf:cxfEndpoint
-        address="http://127.0.0.1:8088/bank1"
-        id="bank1WS" serviceClass="org.apache.camel.loanbroker.webservice.version.bank.BankWS">
+    <cxf:cxfEndpoint address="http://127.0.0.1:8088/bank1" id="bank1WS" serviceClass="org.apache.camel.loanbroker.webservice.version.bank.BankWS">
         <cxf:properties>
             <entry key="dataformat" value="POJO"/>
             <entry key="loggingFeatureEnabled" value="true"/>
         </cxf:properties>
     </cxf:cxfEndpoint>
-    <cxf:cxfEndpoint
-        address="http://127.0.0.1:8089/bank2"
-        id="bank2WS" serviceClass="org.apache.camel.loanbroker.webservice.version.bank.BankWS">
+    <cxf:cxfEndpoint address="http://127.0.0.1:8089/bank2" id="bank2WS" serviceClass="org.apache.camel.loanbroker.webservice.version.bank.BankWS">
         <cxf:properties>
             <entry key="dataformat" value="POJO"/>
             <entry key="loggingFeatureEnabled" value="true"/>
         </cxf:properties>
     </cxf:cxfEndpoint>
-        <cxf:cxfEndpoint
-        address="http://127.0.0.1:8090/bank3"
-        id="bank3WS" serviceClass="org.apache.camel.loanbroker.webservice.version.bank.BankWS">
+    <cxf:cxfEndpoint address="http://127.0.0.1:8090/bank3" id="bank3WS" serviceClass="org.apache.camel.loanbroker.webservice.version.bank.BankWS">
         <cxf:properties>
             <entry key="dataformat" value="POJO"/>
             <entry key="loggingFeatureEnabled" value="true"/>
@@ -59,7 +53,7 @@
     </bean>
     <bean
         class="org.apache.camel.component.servlet.CamelHttpTransportServlet" id="camelServlet"/>
-    <camelContext id="camelContext-df9739c6-8139-4d67-a566-b0dc201882a0" xmlns="http://camel.apache.org/schema/blueprint">
+    <camelContext id="TetraPackCamelContext" xmlns="http://camel.apache.org/schema/blueprint">
         <!-- configure rest to use the camel-servlet component, and use json binding mode -->
         <!-- and tell to output json in pretty print mode -->
         <!-- setup context path and port number that Apache Tomcat will deploy this application with,
@@ -67,10 +61,25 @@
          knows the url to the REST services.
          Notice: This is optional, but needed if the RestRegistry should enlist accurate information.
          You can access the RestRegistry from JMX at runtime -->
-        <restConfiguration bindingMode="json" component="servlet"
-            contextPath="/soap-to-rest/loanBroker" port="8181">
+        
+        <restConfiguration 
+        	apiContextListing="true"
+            apiContextPath="api-docs" 
+            bindingMode="json"
+            component="servlet"
+            contextPath="/soap-to-rest/loanBroker"
+            enableCORS="true" 
+            port="8181">
+            <!-- we want json output in pretty mode -->
             <dataFormatProperty key="prettyPrint" value="true"/>
+            <!-- setup swagger api descriptions -->
+            <apiProperty key="base.path" value="rest"/>
+            <apiProperty key="api.version" value="1.2.3"/>
+            <apiProperty key="api.title" value="User Services"/>
+            <apiProperty key="api.description" value="Camel Rest Example with Swagger that provides an SOAP to REST service"/>
+            <apiProperty key="api.contact.name" value="The Red Hat team"/>
         </restConfiguration>
+        
         <!-- defines the rest services using the context-path /user -->
         <rest consumes="application/json" path="/bank" produces="application/json">
             <description>Loan Broker Service</description>
@@ -81,7 +90,7 @@
             </get>
             <get
                 outType="org.apache.camel.loanbroker.webservice.version.bank.BankQuote" uri="/best/ssn/{ssn}/amount/{amount}/loanDuration/{loanDuration}/">
-                <description>Get the best quote</description>
+                <description>Collect responses from each bank and return the best quote</description>
                 <to uri="direct:loanBroker"/>
             </get>
         </rest>
@@ -97,38 +106,30 @@
         </route>
         <route id="Bank1Route">
             <from id="Bank1Route" uri="direct:bank1"/>
-            <log id="quote_log_1" message="In Route quote"/>
             <process id="_process1" ref="creditScoreProcessor"/>
-            <to id="quote__to1" uri="cxf:bean:bank1WS"/>
-            <log id="quote__log2" message="After!!"/>
+            <to uri="cxf:bean:bank1WS"/>
         </route>
         <route id="Bank2Route">
             <from id="Bank2Route" uri="direct:bank2"/>
-            <log id="Bank2_log_1" message="In Route quote"/>
             <process id="Bank2_process1" ref="creditScoreProcessor"/>
-            <to id="Bank2_to1" uri="cxf:bean:bank2WS"/>
-            <log id="Bank2_log2" message="After!!"/>
+            <to uri="cxf:bean:bank2WS"/>
         </route>
         <route id="Bank3Route">
             <from id="Bank3Route" uri="direct:bank3"/>
-            <log id="Bank3_log_1" message="In Route quote"/>
             <process id="Bank3_process1" ref="creditScoreProcessor"/>
-            <to id="Bank3_to1" uri="cxf:bean:bank3WS"/>
-            <log id="Bank3_log2" message="After WS3!!"/>
+            <to uri="cxf:bean:bank3WS"/>
         </route>
-        
         <route id="loanBrokerRoute">
             <from id="loanBrokerRoute" uri="direct:loanBroker"/>
-            <log id="loanBroker_log_1" message="In Route loanBroker"/>
             <process id="loanBroker_process1" ref="creditScoreProcessor"/>
             <log id="_log1" message="Calling the two banks with request: ${body}"/>
             <multicast id="_multicast1" parallelProcessing="true" strategyRef="bankResponse">
-                <to  uri="cxf:bean:bank1WS"/>
-                <to  uri="cxf:bean:bank2WS"/>
-                <to  uri="cxf:bean:bank3WS"/>
+                <to uri="cxf:bean:bank1WS"/>
+                <to uri="cxf:bean:bank2WS"/>
+                <to uri="cxf:bean:bank3WS"/>
             </multicast>
-            <log id="_log2" message="The best rate is : ${body}"/>
-            <marshal id="marshal2">
+            <log message="The best rate is : ${body}"/>
+            <marshal>
                 <json library="Jackson" prettyPrint="true"/>
             </marshal>
         </route>

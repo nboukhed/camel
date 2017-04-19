@@ -22,10 +22,12 @@ First you need to install the following features in Karaf/ServiceMix with:
 	feature:install camel-servlet
 	feature:install camel-jackson
 	feature:install war
+	feature:install camel-swagger-java
+	
 
 Then you can install the Camel example:
 
-	install -s mvn:org.apache.camel/camel-example-servlet-rest-blueprint/${project.version}
+	install -s mvn:org.apache.camel/soap-to-rest/${project.version}
 
 And you can see the application running by tailing the logs
 
@@ -52,6 +54,15 @@ From the command shell you can use curl to access the service as shown below:
     curl -X GET -H "Accept: application/json" http://localhost:8181/camel-example-servlet-rest-blueprint/rest/user/findAll
     curl -X PUT -d "{ \"id\": 666, \"name\": \"The devil\"}" -H "Accept: application/json" http://localhost:8181/camel-example-servlet-rest-blueprint/rest/user
 
+
+
+The rest services provides Swagger API in json or yaml format
+which can be accessed from the following url
+
+    curl http://0.0.0.0:8181/soap-to-rest/loanBroker/api-docs/TetraPackCamelContext/swagger.json
+    curl http://0.0.0.0:8181/soap-to-rest/loanBroker/api-docs/TetraPackCamelContext/swagger.yaml
+
+<http://0.0.0.0:8080/camel-example-swagger-osgi/rest/api-docs/myCamel/swagger.json>
 
 ### Configuration
 This example is implemented in XML DSL in the `src/main/resources/OSGI-INF/bluepring/camel.xml` file.
