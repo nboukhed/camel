@@ -37,10 +37,11 @@
             <entry key="loggingFeatureEnabled" value="true"/>
         </cxf:properties>
     </cxf:cxfEndpoint>
-    <bean
-        class="org.apache.camel.loanbroker.webservice.version.CreditScoreProcessor" id="creditScoreProcessor"/>
-    <bean
-        class="org.apache.camel.loanbroker.webservice.version.BankResponseAggregationStrategy" id="bankResponse"/>
+    
+    <bean class="org.apache.camel.loanbroker.webservice.version.RequestMapper" id="requestMapper"/>
+    <bean class="org.apache.camel.loanbroker.webservice.version.ResponseMapper" id="responseMapper"/>
+    <bean class="org.apache.camel.loanbroker.webservice.version.BankResponseAggregationStrategy" id="bankResponse"/>
+    
     <!-- to setup camel servlet with OSGi HttpService -->
     <reference id="httpService" interface="org.osgi.service.http.HttpService"/>
     <bean
@@ -54,14 +55,11 @@
     <bean
         class="org.apache.camel.component.servlet.CamelHttpTransportServlet" id="camelServlet"/>
     <camelContext id="TetraPackCamelContext" xmlns="http://camel.apache.org/schema/blueprint">
-        <!-- configure rest to use the camel-servlet component, and use json binding mode -->
-        <!-- and tell to output json in pretty print mode -->
-        <!-- setup context path and port number that Apache Tomcat will deploy this application with,
-         as we use the servlet component, then we need to aid Camel to tell it these details so Camel
-         knows the url to the REST services.
-         Notice: This is optional, but needed if the RestRegistry should enlist accurate information.
-         You can access the RestRegistry from JMX at runtime -->
         
+		<dataFormats>
+  			<json id="toJson" library="Jackson" unmarshalTypeName="org.apache.camel.loanbroker.webservice.version.bank.BankQuote"/>
+		</dataFormats>
+	
         <restConfiguration 
         	apiContextListing="true"
             apiContextPath="api-docs" 
@@ -81,7 +79,7 @@
         </restConfiguration>
         
         <!-- defines the rest services using the context-path /user -->
-        <rest consumes="application/json" path="/bank" produces="application/json">
+        <rest consumes="application/json" path="/bank" produces="text/plain">
             <description>Loan Broker Service</description>
             <get
                 outType="org.apache.camel.loanbroker.webservice.version.bank.BankQuote" uri="/{bankId}/ssn/{ssn}/amount/{amount}/loanDuration/{loanDuration}/">
@@ -100,28 +98,29 @@
             <recipientList id="_recipientList1">
                 <simple>direct:${header.bankId}</simple>
             </recipientList>
-            <marshal id="marshal">
-                <json library="Jackson" prettyPrint="true"/>
-            </marshal>
+            <marshal ref="toJson"/>
         </route>
         <route id="Bank1Route">
             <from id="Bank1Route" uri="direct:bank1"/>
-            <process id="_process1" ref="creditScoreProcessor"/>
+            <process ref="requestMapper"/>
             <to uri="cxf:bean:bank1WS"/>
+            <process ref="responseMapper"/>
         </route>
         <route id="Bank2Route">
             <from id="Bank2Route" uri="direct:bank2"/>
-            <process id="Bank2_process1" ref="creditScoreProcessor"/>
+            <process ref="requestMapper"/>
             <to uri="cxf:bean:bank2WS"/>
+            <process ref="responseMapper"/>
         </route>
         <route id="Bank3Route">
             <from id="Bank3Route" uri="direct:bank3"/>
-            <process id="Bank3_process1" ref="creditScoreProcessor"/>
+            <process ref="requestMapper"/>
             <to uri="cxf:bean:bank3WS"/>
+            <process ref="responseMapper"/>
         </route>
         <route id="loanBrokerRoute">
             <from id="loanBrokerRoute" uri="direct:loanBroker"/>
-            <process id="loanBroker_process1" ref="creditScoreProcessor"/>
+            <process ref="requestMapper"/>
             <log id="_log1" message="Calling the two banks with request: ${body}"/>
             <multicast id="_multicast1" parallelProcessing="true" strategyRef="bankResponse">
                 <to uri="cxf:bean:bank1WS"/>
@@ -129,9 +128,7 @@
                 <to uri="cxf:bean:bank3WS"/>
             </multicast>
             <log message="The best rate is : ${body}"/>
-            <marshal>
-                <json library="Jackson" prettyPrint="true"/>
-            </marshal>
+            <marshal ref="toJson"/>
         </route>
     </camelContext>
 </blueprint>
