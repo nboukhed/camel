@@ -14,7 +14,7 @@ public class ResponseMapper implements Processor {
 	@SuppressWarnings("unchecked")
     public void process(Exchange exchange) throws Exception {
 		
-		LOG.info("in the ResponseMapper ..............");
+		LOG.debug("in the ResponseMapper ..............");
 		BankQuote quote = (BankQuote)exchange.getIn().getBody(MessageContentsList.class).get(0);
 		LOG.debug("getBankName .............." + quote.getBankName());
 		LOG.debug("getRate .............."+ quote.getRate());

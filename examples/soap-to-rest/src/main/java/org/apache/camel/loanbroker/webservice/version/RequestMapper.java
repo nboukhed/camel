@@ -58,14 +58,14 @@ public class RequestMapper implements Processor {
         Double amount =  Double.valueOf((String)(exchange.getIn().getHeader("amount")));//(Double) request.get(1);
         Integer loanDuration = Integer.valueOf((String) exchange.getIn().getHeader("loanDuration")); //(Integer) request.get(2);
         
-    	log.info("Calling Credit Score with Request[ ssn: " + ssn + ",amount: " + amount + ", loanDuration: " + loanDuration + "]");
+    	log.info("Calling The bank WS with Request[ ssn: " + ssn + ",amount: " + amount + ", loanDuration: " + loanDuration + "]");
 
         int historyLength = 10;//proxy.getCreditHistoryLength(ssn);
         int score = 10; // proxy.getCreditScore(ssn);
         
-    	log.info("The credit check lookup returns the following informations :");
-    	log.info(" - historyLength    : " + historyLength );
-    	log.info(" - score            : " + score );
+    	log.fine("The credit check lookup returns the following informations :");
+    	log.fine(" - historyLength    : " + historyLength );
+    	log.fine(" - score            : " + score );
 
         // create the invocation message for Bank client
         List<Object> bankRequest = new ArrayList<Object>();
